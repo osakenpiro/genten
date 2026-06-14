@@ -58,6 +58,9 @@
   .pr .no{font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:var(--cela); opacity:.8}
   .pr .nm{font-size:clamp(19px,3.5vw,24px); font-weight:600; letter-spacing:.08em; margin:.1em 0 .35em; line-height:1.5}
   .pr .bd{font-size:15.5px; color:var(--fg2); line-height:1.95}
+  .pr .src{font-size:12px; color:var(--cela-dim); font-style:italic; line-height:1.7; margin-top:.7em; opacity:0; transition:opacity .6s}
+  .pr .src.show{opacity:.82}
+  .pr .src b{color:var(--cela); font-style:normal; font-weight:600}
   .glyph{color:var(--cela-dim); transition:color .12s}
   .on{color:inherit}
 
@@ -81,7 +84,7 @@
     <div class="kicker">O P A A R T S &nbsp;·&nbsp; 原 点</div>
     <div class="romaji">G E N T E N</div>
     <h1>げんてん</h1>
-    <div class="lede">五つの原則を刻んだ、ひとつのオーパーツ。<br><b style="color:var(--cela)">解読</b>のつまみを回すと、暗号の文様が、ことばに変わる。——理解も、二値ではない。</div>
+    <div class="lede">五つの原則を刻んだ、ひとつのオーパーツ。<br><b style="color:var(--cela)">解読</b>のつまみを回すと、暗号の文様が、ことばに変わる。——理解も、二値ではない。<br>最後まで解くと、それぞれの<b style="color:var(--cela)">出典</b>が現れる。</div>
   </header>
 
   <div class="panel">
@@ -111,11 +114,11 @@
 /* げんてん / GENTEN — Boolean→Float 原典オーパーツ。解読度(Float)で暗号文様→ことば。
    核となる設計原則は CLAUDE.md より忠実に転記(原典＝事実の正本)。 */
 const PRINCIPLES=[
- {no:"原則 一", nm:"Boolean → Float", bd:"二値判断を、連続値 0.0〜1.0 に再定義する。全プロジェクトを貫く、いちばん底の哲学。"},
- {no:"原則 二", nm:"個別最適の規格化 / 規格の個別最適化", bd:"Boolean→Float の運用原理。ひとつの規格を、それぞれに合わせて。型を、いのちに。"},
- {no:"原則 三", nm:"三重がけ命名法", bd:"名前を、音韻 × 意味 × 構造 の三層で機能させる。よい名は、三度はたらく。"},
- {no:"原則 四", nm:"腐葉土設計", bd:"蓄積された文脈は、劣化させず栄養層として保持する。時間で減衰させない。すべては、つぎの芽の土。"},
- {no:"原則 五", nm:"熱があるうちに", bd:"エネルギーが高い間に、動く。完璧よりも、勢い。冷める前に、形にする。"}
+ {no:"原則 一", nm:"Boolean → Float", bd:"二値判断を、連続値 0.0〜1.0 に再定義する。全プロジェクトを貫く、いちばん底の哲学。", src:"系譜：<b>ファジィ集合論</b>（L. A. Zadeh, &ldquo;Fuzzy Sets&rdquo;, 1965）の所属度＝連続値[0,1] を、判断と設計の全域へ広げたもの。"},
+ {no:"原則 二", nm:"個別最適の規格化 / 規格の個別最適化", bd:"Boolean→Float の運用原理。ひとつの規格を、それぞれに合わせて。型を、いのちに。", src:"系譜：<b>規格⇄個別</b>の双対。マスカスタマイゼーションとプラットフォーム設計を、両方向に運用化する。"},
+ {no:"原則 三", nm:"三重がけ命名法", bd:"名前を、音韻 × 意味 × 構造 の三層で機能させる。よい名は、三度はたらく。", src:"系譜：<b>多重符号化</b>。記号論の signifier／signified に、体系内での位置を一層足した命名法。"},
+ {no:"原則 四", nm:"腐葉土設計", bd:"蓄積された文脈は、劣化させず栄養層として保持する。時間で減衰させない。すべては、つぎの芽の土。", src:"系譜：<b>追記型</b>（append-only）の常緑ログ。捨てずに積み、過去を次の養分に変える。"},
+ {no:"原則 五", nm:"熱があるうちに", bd:"エネルギーが高い間に、動く。完璧よりも、勢い。冷める前に、形にする。", src:"系譜：<b>着手優先</b>。完璧主義を抑え、勢いを資源として扱う設計（ADHD運用知）。"}
 ];
 const REVEALS=[
  [0.0,"…文様。まだ、読めない。"],
@@ -138,6 +141,7 @@ PRINCIPLES.forEach((p,pi)=>{
   const bd=document.createElement("div"); bd.className="bd";
   const head=document.createElement("div"); head.className="no"; head.textContent=p.no;
   div.appendChild(head); div.appendChild(nm); div.appendChild(bd);
+  const src=document.createElement("div"); src.className="src"; src.innerHTML=p.src||""; div.appendChild(src);
   const build=(str,host,band)=>{
     [...str].forEach(ch=>{
       if(ch===" "||ch==="　"||ch==="／"||ch==="×"||ch==="〜"||ch==="."||ch==="、"||ch==="。"){
@@ -166,21 +170,4 @@ function render(){
   const v=parseFloat(dial.value); let on=0;
   for(const c of cells){
     const dec = v>=c.th;
-    if(dec){ if(c.s.textContent!==c.real){ c.s.textContent=c.real; } c.s.classList.add("on"); on++; }
-    else{ if(c.s.classList.contains("on")){ c.s.classList.remove("on"); } c.s.textContent=c.cipher; }
-  }
-  pval.textContent=f2(v); st.textContent=stage(v); cnt.textContent=`${on} / ${total} 字 解読`;
-  const rv=curReveal(v);
-  if(rv!==lastRev){ lastRev=rv; reveal.innerHTML=rv; reveal.classList.remove("hide"); }
-}
-dial.addEventListener("input",render); render();
-
-(function(){const c=document.getElementById("sky"),x=c.getContext("2d");
-  const rd=matchMedia("(prefers-reduced-motion: reduce)").matches; let W,H,stt;
-  function rs(){W=c.width=innerWidth;H=c.height=innerHeight;const n=Math.min(64,(W*H/24000)|0);
-    stt=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+.2,a:Math.random(),s:Math.random()*.014+.003,g:Math.random()<.1}));}
-  function dr(){x.clearRect(0,0,W,H);for(const s of stt){if(!rd){s.a+=s.s;if(s.a>1||s.a<.1)s.s*=-1;}x.globalAlpha=.1+s.a*.45;x.fillStyle=s.g?"#6f9f9b":"#cfd6e6";x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;if(!rd)requestAnimationFrame(dr);}
-  addEventListener("resize",rs);rs();dr();})();
-</script>
-</body>
-</html>
+    if(dec){ if(c.s.textContent!==c.real){ c.s.textContent
