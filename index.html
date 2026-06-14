@@ -170,4 +170,22 @@ function render(){
   const v=parseFloat(dial.value); let on=0;
   for(const c of cells){
     const dec = v>=c.th;
-    if(dec){ if(c.s.textContent!==c.real){ c.s.textContent
+    if(dec){ if(c.s.textContent!==c.real){ c.s.textContent=c.real; } c.s.classList.add("on"); on++; }
+    else{ if(c.s.classList.contains("on")){ c.s.classList.remove("on"); } c.s.textContent=c.cipher; }
+  }
+  pval.textContent=f2(v); st.textContent=stage(v); cnt.textContent=`${on} / ${total} 字 解読`;
+  document.querySelectorAll(".pr .src").forEach(e=>e.classList.toggle("show", v>=0.85));
+  const rv=curReveal(v);
+  if(rv!==lastRev){ lastRev=rv; reveal.innerHTML=rv; reveal.classList.remove("hide"); }
+}
+dial.addEventListener("input",render); render();
+
+(function(){const c=document.getElementById("sky"),x=c.getContext("2d");
+  const rd=matchMedia("(prefers-reduced-motion: reduce)").matches; let W,H,stt;
+  function rs(){W=c.width=innerWidth;H=c.height=innerHeight;const n=Math.min(64,(W*H/24000)|0);
+    stt=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+.2,a:Math.random(),s:Math.random()*.014+.003,g:Math.random()<.1}));}
+  function dr(){x.clearRect(0,0,W,H);for(const s of stt){if(!rd){s.a+=s.s;if(s.a>1||s.a<.1)s.s*=-1;}x.globalAlpha=.1+s.a*.45;x.fillStyle=s.g?"#6f9f9b":"#cfd6e6";x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;if(!rd)requestAnimationFrame(dr);}
+  addEventListener("resize",rs);rs();dr();})();
+</script>
+</body>
+</html>
