@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>げんてん / GENTEN — 二値をやめる、その原点。</title>
+<meta name="description" content="Boolean→Float の原典。五つの設計原則が刻まれたオーパーツ。解読のつまみを回すと、暗号の文様が、ことばに変わる。理解も、二値ではない。">
+<meta property="og:title" content="げんてん / GENTEN">
+<meta property="og:description" content="二値をやめる、その原点。五つの原則を刻んだオーパーツを、解読する。">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Crect x='8' y='6' width='16' height='20' rx='2' fill='none' stroke='%236f9f9b' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23d4a853'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --void:#0a0a0f; --void-deep:#06060a; --surface:#141618; --surface-hi:#1a1d1f;
+    --gold:#d4a853; --gold-soft:rgba(212,168,83,.12); --gold-glow:rgba(212,168,83,.22); --gold-edge:rgba(212,168,83,.45);
+    --cela:#6f9f9b; --cela-dim:#3f5a57; --cela-soft:rgba(111,159,155,.12); --cela-edge:rgba(111,159,155,.4); /* O柱=青磁 */
+    --fg1:#e6e2d6; --fg2:#b2b4ac; --fg3:#76817d; --dim:#4d5550;
+    --border:rgba(160,180,176,.08); --border-hi:rgba(111,159,155,.25);
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Mincho ProN","Yu Mincho","Hiragino Sans","Yu Gothic",serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:radial-gradient(120% 80% at 50% 0%,#0b0f0e 0%,var(--void) 45%,var(--void-deep) 100%);
+    color:var(--fg1); font-family:var(--sans); line-height:2; letter-spacing:.04em; -webkit-font-smoothing:antialiased; min-height:100vh}
+  canvas#sky{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(16px,4vw,28px) 100px}
+
+  header{text-align:center; padding:clamp(14px,4vw,40px) 0 22px}
+  .kicker{font-family:var(--mono); font-size:12px; letter-spacing:.4em; color:var(--cela); margin-bottom:14px}
+  h1{font-size:clamp(30px,7vw,52px); font-weight:600; letter-spacing:.16em; margin:.05em 0; text-shadow:0 0 26px var(--cela-soft)}
+  .romaji{font-family:var(--mono); color:var(--gold); letter-spacing:.42em; font-size:12px; margin-bottom:4px}
+  .lede{color:var(--fg2); font-size:14.5px; max-width:28em; margin:14px auto 0; line-height:1.9}
+
+  .panel{position:sticky; top:0; z-index:5; margin:24px 0 26px; padding:16px 18px 12px;
+    background:linear-gradient(180deg,rgba(20,22,24,.96),rgba(20,22,24,.86)); backdrop-filter:blur(8px);
+    border:1px solid var(--border); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .ptop{display:flex; justify-content:space-between; align-items:baseline; font-family:var(--mono)}
+  .plabel{font-size:12px; letter-spacing:.2em; color:var(--cela)}
+  .pval{font-size:22px; color:var(--gold); text-shadow:0 0 12px var(--gold-glow)}
+  .dial{width:100%; -webkit-appearance:none; appearance:none; height:5px; border-radius:99px; outline:none; cursor:pointer; margin:8px 0 6px;
+    background:linear-gradient(90deg,var(--cela-dim),var(--gold-edge))}
+  .dial::-webkit-slider-thumb{-webkit-appearance:none; width:24px; height:24px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f0d89a,var(--gold) 70%); border:2px solid #16140f;
+    box-shadow:0 0 0 5px var(--gold-soft),0 0 16px var(--gold-glow); cursor:grab}
+  .dial::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f0d89a,var(--gold) 70%);
+    border:2px solid #16140f;box-shadow:0 0 0 5px var(--gold-soft),0 0 16px var(--gold-glow);cursor:grab}
+  .pmeta{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--fg3)}
+  .pmeta .st{color:var(--cela)}
+
+  .tablet{background:linear-gradient(160deg,#13100c 0%,#161312 100%);
+    border:1px solid var(--border-hi); border-radius:14px; padding:clamp(20px,4vw,38px) clamp(18px,4vw,34px);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.7), inset 0 1px 0 rgba(230,226,214,.04), 0 24px 60px rgba(0,0,0,.5);
+    position:relative}
+  .tablet::before{content:""; position:absolute; inset:8px; border:1px solid rgba(111,159,155,.1); border-radius:8px; pointer-events:none}
+  .pr{margin:0 0 1.5em; padding-bottom:1.3em; border-bottom:1px solid rgba(160,180,176,.06)}
+  .pr:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0}
+  .pr .no{font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:var(--cela); opacity:.8}
+  .pr .nm{font-size:clamp(19px,3.5vw,24px); font-weight:600; letter-spacing:.08em; margin:.1em 0 .35em; line-height:1.5}
+  .pr .bd{font-size:15.5px; color:var(--fg2); line-height:1.95}
+  .glyph{color:var(--cela-dim); transition:color .12s}
+  .on{color:inherit}
+
+  .reveal{margin-top:18px; text-align:center; min-height:2.4em; transition:opacity .4s; color:var(--gold); font-size:15px}
+  .reveal.hide{opacity:0}
+  .reveal b{color:var(--fg1)}
+
+  footer{margin-top:44px; border-top:1px solid var(--border); padding-top:24px; text-align:center; color:var(--fg3); font-size:13px}
+  .pill{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--cela);
+    border:1px solid var(--cela-edge); border-radius:99px; padding:3px 12px; margin-bottom:10px}
+  footer .links{display:flex; flex-wrap:wrap; gap:8px 16px; justify-content:center; margin:14px 0}
+  footer a{color:var(--fg2); text-decoration:none; border-bottom:1px solid var(--border)}
+  footer a:hover{color:var(--gold)}
+  @media (prefers-reduced-motion: reduce){ .glyph,.reveal{transition:none} }
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<div class="wrap">
+  <header>
+    <div class="kicker">O P A A R T S &nbsp;·&nbsp; 原 点</div>
+    <div class="romaji">G E N T E N</div>
+    <h1>げんてん</h1>
+    <div class="lede">五つの原則を刻んだ、ひとつのオーパーツ。<br><b style="color:var(--cela)">解読</b>のつまみを回すと、暗号の文様が、ことばに変わる。——理解も、二値ではない。</div>
+  </header>
+
+  <div class="panel">
+    <div class="ptop"><span class="plabel">解 読 度</span><span class="pval" id="pval">0.15</span></div>
+    <input class="dial" id="dial" type="range" min="0" max="1" step="0.01" value="0.15" aria-label="解読度 0から1">
+    <div class="pmeta"><span class="st" id="st">文様</span><span id="cnt">0 / 0 字 解読</span></div>
+  </div>
+
+  <div class="tablet" id="tablet"></div>
+
+  <div class="reveal hide" id="reveal"></div>
+
+  <footer>
+    <div class="pill">この原点から、四つが生まれた</div>
+    <div>選ぶ・つくる・読む・届ける——みな、ここから。</div>
+    <div class="links">
+      <a href="https://osakenpiro.github.io/awai/">あわい(選ぶ)</a>
+      <a href="https://osakenpiro.github.io/naoshikata/">なおしかた(つくる)</a>
+      <a href="https://osakenpiro.github.io/anbai/">あんばい(読む)</a>
+      <a href="https://osakenpiro.github.io/osusowake/">おすそわけ(届ける)</a>
+    </div>
+    <div style="color:var(--dim);font-size:11.5px;letter-spacing:.1em">げんてん / GENTEN · Opaarts · #全人類UX改善計画 · Visionium</div>
+  </footer>
+</div>
+<script>
+"use strict";
+/* げんてん / GENTEN — Boolean→Float 原典オーパーツ。解読度(Float)で暗号文様→ことば。
+   核となる設計原則は CLAUDE.md より忠実に転記(原典＝事実の正本)。 */
+const PRINCIPLES=[
+ {no:"原則 一", nm:"Boolean → Float", bd:"二値判断を、連続値 0.0〜1.0 に再定義する。全プロジェクトを貫く、いちばん底の哲学。"},
+ {no:"原則 二", nm:"個別最適の規格化 / 規格の個別最適化", bd:"Boolean→Float の運用原理。ひとつの規格を、それぞれに合わせて。型を、いのちに。"},
+ {no:"原則 三", nm:"三重がけ命名法", bd:"名前を、音韻 × 意味 × 構造 の三層で機能させる。よい名は、三度はたらく。"},
+ {no:"原則 四", nm:"腐葉土設計", bd:"蓄積された文脈は、劣化させず栄養層として保持する。時間で減衰させない。すべては、つぎの芽の土。"},
+ {no:"原則 五", nm:"熱があるうちに", bd:"エネルギーが高い間に、動く。完璧よりも、勢い。冷める前に、形にする。"}
+];
+const REVEALS=[
+ [0.0,"…文様。まだ、読めない。"],
+ [0.25,"<b>あわい</b> は、これの〈選ぶ〉版だ。"],
+ [0.5,"<b>なおしかた</b> は〈つくる〉、<b>あんばい</b> は〈読む〉。"],
+ [0.8,"<b>おすそわけ</b> が、それらを〈届ける〉。"],
+ [0.99,"——五つの原則は、ぜんぶ一つ。<b>二値を、やめる。</b>"]
+];
+const GLY="◇◈◆⟡⬡⬢▣▤▥▦△▽◁▷〇⊙⊚⌘⌬❖✦⟐⟓◬⏣";
+const f2=v=>v.toFixed(2);
+// 文字ごとの閾値(決定的): 位置でばらつかせ、解読が左→右ではなく“滲む”ように
+function hash(i){ let x=(i*2654435761)>>>0; x^=x>>>15; x=(x*2246822519)>>>0; x^=x>>>13; return (x>>>0)/4294967295; }
+
+const tablet=document.getElementById("tablet");
+let cells=[]; // {span, th, real, cipher}
+let gi=0, total=0;
+PRINCIPLES.forEach((p,pi)=>{
+  const div=document.createElement("div"); div.className="pr";
+  const nm=document.createElement("div"); nm.className="nm";
+  const bd=document.createElement("div"); bd.className="bd";
+  const head=document.createElement("div"); head.className="no"; head.textContent=p.no;
+  div.appendChild(head); div.appendChild(nm); div.appendChild(bd);
+  const build=(str,host,band)=>{
+    [...str].forEach(ch=>{
+      if(ch===" "||ch==="　"||ch==="／"||ch==="×"||ch==="〜"||ch==="."||ch==="、"||ch==="。"){
+        const s=document.createElement("span"); s.textContent=ch; host.appendChild(s); return; }
+      const s=document.createElement("span"); s.className="glyph";
+      const cipher=GLY[Math.floor(hash(gi*7+1)*GLY.length)];
+      // 名前は早く、本文は遅めに解読される(band補正)
+      const th=Math.min(0.98, hash(gi)*0.82 + band);
+      s.textContent=cipher;
+      host.appendChild(s);
+      cells.push({s,th,real:ch,cipher}); gi++; total++;
+    });
+  };
+  build(p.nm, nm, 0.02);
+  build(p.bd, bd, 0.16);
+  tablet.appendChild(div);
+});
+
+const dial=document.getElementById("dial"), pval=document.getElementById("pval"),
+      st=document.getElementById("st"), cnt=document.getElementById("cnt"), reveal=document.getElementById("reveal");
+const stage=v=> v<0.12?"文様": v<0.35?"にじみ": v<0.6?"かすれ字": v<0.85?"あらかた": v<0.999?"ほぼ解読":"原点、開く";
+
+function curReveal(v){ let r=REVEALS[0][1]; for(const [d,t] of REVEALS){ if(v>=d) r=t; } return r; }
+let lastRev="";
+function render(){
+  const v=parseFloat(dial.value); let on=0;
+  for(const c of cells){
+    const dec = v>=c.th;
+    if(dec){ if(c.s.textContent!==c.real){ c.s.textContent=c.real; } c.s.classList.add("on"); on++; }
+    else{ if(c.s.classList.contains("on")){ c.s.classList.remove("on"); } c.s.textContent=c.cipher; }
+  }
+  pval.textContent=f2(v); st.textContent=stage(v); cnt.textContent=`${on} / ${total} 字 解読`;
+  const rv=curReveal(v);
+  if(rv!==lastRev){ lastRev=rv; reveal.innerHTML=rv; reveal.classList.remove("hide"); }
+}
+dial.addEventListener("input",render); render();
+
+(function(){const c=document.getElementById("sky"),x=c.getContext("2d");
+  const rd=matchMedia("(prefers-reduced-motion: reduce)").matches; let W,H,stt;
+  function rs(){W=c.width=innerWidth;H=c.height=innerHeight;const n=Math.min(64,(W*H/24000)|0);
+    stt=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1+.2,a:Math.random(),s:Math.random()*.014+.003,g:Math.random()<.1}));}
+  function dr(){x.clearRect(0,0,W,H);for(const s of stt){if(!rd){s.a+=s.s;if(s.a>1||s.a<.1)s.s*=-1;}x.globalAlpha=.1+s.a*.45;x.fillStyle=s.g?"#6f9f9b":"#cfd6e6";x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;if(!rd)requestAnimationFrame(dr);}
+  addEventListener("resize",rs);rs();dr();})();
+</script>
+</body>
+</html>
